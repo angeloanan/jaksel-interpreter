@@ -1,0 +1,62 @@
+Program = _{ SOI ~ (Statement | "\n")* ~ EOI }
+
+WHITESPACE = _{ " " | "\t" } // Hacky "\n" added here for ConditionalExpression. Dont forget to remove
+COMMENT = _{ ("/*" ~ (!"*/" ~ ANY)* ~ "*/") | ("//" ~ (!"\n" ~ ANY)* ~ "\n"?) }
+
+Statement = _{
+  PrintExpression
+  | AssignmentExpression
+  | ConditionalExpression
+  | BinaryComparison
+}
+
+PrintExpression = { "spill" ~ (!"\n" ~ ANY)* } // TODO: Refactor ANY
+ConditionalExpression = {
+  "kalo"
+  ~ ConditionalExpressionCondition
+  ~ "\n"
+  ~ Children
+}
+AssignmentExpression = {
+  ("literally" | "seriously" | "whichis")
+  ~ Identifier
+  ~ "itu"
+  ~ Value
+}
+
+ConditionalExpressionCondition = { BinaryComparison }
+
+BinaryComparison = { Identifier ~ BinaryOp ~ Value }
+
+Identifier = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+Value = { String | Boolean | Number | Identifier }
+
+// Types
+Number = @{
+    // Stolen from JSON Example
+    "-"?
+    ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
+    ~ ("." ~ ASCII_DIGIT*)?
+    ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+ }
+String = { "\"" ~ ((!"\"") ~ ANY)* ~ "\"" }
+Boolean = { True | False }
+
+BinaryOp = { Eq | Ne | Gt | Lt | Ge | Le }
+
+// Literals
+True = { "positive vibes" | "worth it" }
+False = { "negative vibes" }
+
+// Binary Operator
+Eq = { "itu" }
+Ne = { "gak" }
+Gt = { "lebih gede" }
+Lt = { "lebih kecil" }
+Ge = { "lebih gede sama dengan" }
+Le = { "lebih kecil sama dengan" }
+
+// Meta stuff
+Indentation = _{ ("--" | "\t")+ }
+Children = !{ PEEK_ALL ~ PUSH(Indentation) ~ Statement ~ ("\n" ~ ChildrenContinue)* ~ DROP }
+ChildrenContinue = _{ PEEK_ALL ~ Statement }
